@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Birthday My Baby!</title>
+  <!-- Google Fonts: Dancing Script, Poppins, Gaegu -->
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Gaegu:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  
+  <style>
+    :root {
+      --bg-color: #f8f5ff;
+      --primary-color: #8e44ad;
+      --secondary-color: #dcd6f7;
+      --dark-purple: #5e2a84;
+      --light-purple: #f3e8ff;
+      --text-color: #333333;
+      --card-bg: #ffffff;
+      --accent-color: #a29bfe;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      padding-bottom: 40px;
+    }
+
+    /* Start Overlay */
+    #start-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(248, 245, 255, 0.98);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 1000; transition: opacity 0.5s ease;
+    }
+    #start-overlay h1 { font-family: 'Dancing Script', cursive; font-size: 3rem; color: var(--primary-color); margin-bottom: 10px; text-align: center; }
+    #start-overlay p { color: var(--dark-purple); margin-bottom: 25px; font-weight: 500; }
+    .start-btn {
+      padding: 15px 40px; font-size: 1.2rem; background: var(--primary-color); color: white;
+      border: none; border-radius: 30px; cursor: pointer; box-shadow: 0 4px 15px rgba(142, 68, 173, 0.4);
+      transition: transform 0.2s;
+    }
+    .start-btn:hover { transform: scale(1.05); }
+
+    /* Header & BGM Controller */
+    header {
+      padding: 20px; display: flex; justify-content: space-between; align-items: center;
+      max-width: 1000px; margin: 0 auto;
+    }
+    .logo { font-family: 'Dancing Script', cursive; font-size: 2rem; color: var(--primary-color); }
+    .bgm-btn {
+      background: white; border: 2px solid var(--primary-color); padding: 8px 16px;
+      border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--primary-color);
+    }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+
+    /* Real Cake & Candle Section */
+    .cake-section {
+      text-align: center; background: white; padding: 40px 20px; border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(142, 68, 173, 0.08); margin: 30px 0;
+    }
+    .real-cake-wrapper {
+      position: relative; width: 100%; max-width: 450px; margin: 0 auto 20px auto; border-radius: 15px; overflow: hidden;
+      cursor: pointer;
+    }
+    .real-cake-img { width: 100%; display: block; border-radius: 15px; }
+    
+    .flame-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+    }
+    .img-flame {
+      position: absolute; width: 12px; height: 20px; background: #ff9f43; border-radius: 50% 50% 20% 20%;
+      box-shadow: 0 0 12px #ff9f43, 0 0 20px #ff5252; animation: flicker 0.4s infinite alternate;
+      transition: opacity 0.8s ease-out;
+    }
+    .img-flame.off { opacity: 0; animation: none; }
+    @keyframes flicker { 0% { transform: scale(1); } 100% { transform: scale(1.2); } }
+
+    .cake-btn-group {
+      display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 15px;
+    }
+
+    /* Countdowns */
+    .countdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0; }
+    .cd-card { background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.03); border-top: 4px solid var(--primary-color); }
+    .cd-card h4 { color: #666; font-size: 0.85rem; }
+    .cd-card .days { font-size: 1.8rem; font-weight: bold; color: var(--primary-color); margin-top: 5px; }
+
+    /* Open When Section */
+    .section-title { text-align: center; font-size: 1.8rem; margin: 40px 0 20px 0; color: var(--primary-color); font-family: 'Dancing Script', cursive; }
+    .envelopes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    .envelope-card {
+      background: #fff; padding: 22px; border-radius: 15px; text-align: center;
+      border: 2px dashed var(--accent-color); cursor: pointer; transition: transform 0.2s;
+    }
+    .envelope-card:hover { transform: translateY(-5px); background: var(--light-purple); }
+    .envelope-card i { font-size: 2.2rem; display: block; margin-bottom: 8px; }
+    .envelope-card h3 { font-size: 1rem; color: var(--dark-purple); }
+
+    /* Real Ticket Style Coupons */
+    .coupons-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .coupon {
+      background: #ffffff;
+      border: 2px solid var(--primary-color);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(142, 68, 173, 0.12);
+      display: flex;
+      flex-direction: column;
+    }
+    .coupon-header {
+      background: var(--primary-color);
+      color: white;
+      padding: 8px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .coupon-body {
+      padding: 20px;
+      text-align: center;
+      flex: 1;
+      position: relative;
+    }
+    .coupon-body::before, .coupon-body::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 16px;
+      height: 16px;
+      background-color: var(--bg-color);
+      border-radius: 50%;
+      transform: translateY(-50%);
+    }
+    .coupon-body::before { left: -10px; border-right: 2px solid var(--primary-color); }
+    .coupon-body::after { right: -10px; border-left: 2px solid var(--primary-color); }
+
+    .coupon h3 { font-size: 1.15rem; color: var(--dark-purple); margin-bottom: 8px; }
+    .coupon p { font-size: 0.8rem; color: #666; margin-bottom: 12px; }
+    
+    .coupon-footer {
+      border-top: 2px dashed var(--secondary-color);
+      padding: 12px;
+      background: var(--light-purple);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .valid-badge {
+      font-size: 0.7rem;
+      font-weight: bold;
+      color: #e74c3c;
+      background: #fadbd8;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px dashed #e74c3c;
+    }
+    .barcode {
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      color: #777;
+    }
+    .redeem-btn {
+      background: var(--primary-color); color: white; border: none; padding: 6px 14px;
+      border-radius: 15px; cursor: pointer; font-size: 0.8rem; font-weight: 600;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* Stamp Effect */
+    .stamp {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg) scale(2);
+      border: 4px solid #8e44ad; color: #8e44ad; font-size: 1.8rem; font-weight: 900;
+      padding: 5px 15px; text-transform: uppercase; border-radius: 8px; opacity: 0;
+      pointer-events: none; transition: all 0.3s ease-out; background: rgba(255,255,255,0.9); z-index: 5;
+    }
+    .coupon.used .stamp { opacity: 0.95; transform: translate(-50%, -50%) rotate(-15deg) scale(1); }
+    .coupon.used .redeem-btn { background: #ccc; cursor: not-allowed; }
+
+    /* Cute Notepad Bucket List */
+    .notepad-section {
+      background: #fffdf0; padding: 35px 30px; border-radius: 5px; margin-top: 40px;
+      box-shadow: 5px 5px 15px rgba(0,0,0,0.08); border-left: 8px solid #ff7675; position: relative;
+      font-family: 'Gaegu', cursive; font-size: 1.3rem;
+    }
+    .notepad-section::before {
+      content: ''; position: absolute; top: 0; left: 20px; width: 2px; height: 100%; background: #fab1a0;
+    }
+    .notepad-title { font-family: 'Dancing Script', cursive; font-size: 2.2rem; color: #d63031; text-align: center; margin-bottom: 15px; }
+    .bucket-list { list-style: none; padding-left: 15px; }
+    .bucket-item { display: flex; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed #ffeaa7; padding-bottom: 5px; }
+    .bucket-item input { margin-right: 12px; width: 20px; height: 20px; accent-color: var(--primary-color); cursor: pointer; }
+    .bucket-text { flex: 1; }
+    .bucket-text.completed { text-decoration: line-through; color: #888; }
+    .add-bucket { display: flex; gap: 10px; margin-top: 25px; padding-left: 15px; }
+    .add-bucket input {
+      flex: 1; padding: 8px 12px; border: 1px solid #dfe6e9; border-radius: 8px; font-family: 'Gaegu', cursive; font-size: 1.2rem; outline: none;
+    }
+    .add-bucket button {
+      padding: 8px 18px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'Gaegu', cursive; font-size: 1.2rem;
+    }
+
+    /* Footer Style */
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      font-size: 0.85rem;
+      color: #888;
+      font-weight: 300;
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 2000;
+    }
+    .modal-content {
+      background: white; padding: 30px; border-radius: 20px; max-width: 450px; width: 90%;
+      text-align: center; position: relative;
+    }
+    .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #888; }
+    .modal-img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 10px;
+      margin: 15px 0;
+      background-color: #f8f5ff;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Audio Autoplay Modal -->
+  <div id="start-overlay">
+    <h1>Happy Birthday My Baby 💌</h1>
+    <p>A special gift created just for you.</p>
+    <button class="start-btn" onclick="startWebsite()">Open Birthday Card 🎉</button>
+  </div>
+
+  <!-- Audio Element (BGM) -->
+  <audio id="bgm" loop preload="auto">
+    <source src="https://slow-coffee-6pp9z4lu.edgeone.dev/" type="audio/mp3">
+  </audio>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">Distance Means Nothing</div>
+    <button class="bgm-btn" onclick="toggleBGM()">🎵 Music On/Off</button>
+  </header>
+
+  <div class="container">
+
+    <!-- Real Cake Blow Candle Event -->
+    <div class="cake-section" id="cake-section">
+      <h2 style="font-family: 'Dancing Script', cursive; font-size: 2.2rem; color: var(--primary-color);">Make a Wish & Blow! 🎂</h2>
+      <p style="color: #666; font-size: 0.9rem; margin-top: 5px;">Blow into your mic OR tap/click the cake to blow out candles!</p>
+      
+      <div class="real-cake-wrapper" onclick="extinguishCandles()">
+        <img src="https://i.imgur.com/ex7NRcf.png" class="real-cake-img" alt="Birthday Cake">
+        <div class="flame-overlay">
+          <div class="img-flame" style="top: 11%; left: 34.5%;"></div>
+          <div class="img-flame" style="top: 9%; left: 39.5%;"></div>
+          <div class="img-flame" style="top: 16%; left: 45%;"></div>
+          <div class="img-flame" style="top: 11%; left: 49.2%;"></div>
+          <div class="img-flame" style="top: 15%; left: 51.5%;"></div>
+          <div class="img-flame" style="top: 14%; left: 59.2%;"></div>
+          <div class="img-flame" style="top: 17%; left: 66%;"></div>
+        </div>
+      </div>
+
+      <div class="cake-btn-group">
+        <button class="start-btn" style="padding: 10px 20px; font-size: 0.95rem;" onclick="enableMic()">🎙️ Enable Mic & Blow</button>
+        <button class="start-btn" style="padding: 10px 20px; font-size: 0.95rem; background: #6c5ce7;" onclick="extinguishCandles()">🕯️ Click to Blow Out Candles</button>
+      </div>
+    </div>
+
+    <!-- Countdowns -->
+    <div class="countdown-grid">
+      <div class="cd-card">
+        <h4>Days Since We Met</h4>
+        <p style="font-size: 0.75rem; color: #aaa;">2026.08.27 ~</p>
+        <div class="days" id="days-met">D+0</div>
+      </div>
+      <div class="cd-card">
+        <h4>Until We Meet Again</h4>
+        <p style="font-size: 0.75rem; color: #aaa;">~ 2027.01.07</p>
+        <div class="days" id="days-next">D-0</div>
+      </div>
+    </div>
+
+    <!-- Open When Envelopes -->
+    <h2 class="section-title">Open When... ✉️</h2>
+    <div class="envelopes-grid">
+      <div class="envelope-card" onclick="openEnvelope(1)">
+        <i>💌</i>
+        <h3>...You miss me a lot</h3>
+      </div>
+      <div class="envelope-card" onclick="openEnvelope(2)">
+        <i>☕</i>
+        <h3>...You had a rough day</h3>
+      </div>
+      <div class="envelope-card" onclick="openEnvelope(3)">
+        <i>🌙</i>
+        <h3>...You can't sleep</h3>
+      </div>
+      <div class="envelope-card" onclick="openEnvelope(4)">
+        <i>🌧️</i>
+        <h3>...We get into a fight</h3>
+      </div>
+      <div class="envelope-card" onclick="openEnvelope(5)">
+        <i>🤗</i>
+        <h3>...You need a warm hug</h3>
+      </div>
+      <div class="envelope-card" onclick="openEnvelope(6)">
+        <i>🤒</i>
+        <h3>...You feel sick or unwell</h3>
+      </div>
+    </div>
+
+    <!-- Digital Love Coupons (Real Ticket Style) -->
+    <h2 class="section-title">Digital Love Coupons 🎟️</h2>
+    <div class="coupons-grid">
+      
+      <div class="coupon" id="coupon-1">
+        <div class="stamp">USED</div>
+        <div class="coupon-header">
+          <span>COUPON TICKET</span>
+          <span>NO. 001</span>
+        </div>
+        <div class="coupon-body">
+          <h3>Free Unlimited Hugs</h3>
+          <p>Valid anytime without expiration date.</p>
+          <span class="valid-badge">EXP: FOREVER</span>
+        </div>
+        <div class="coupon-footer">
+          <div class="barcode">||| | ||||| |</div>
+          <button class="redeem-btn" onclick="redeemCoupon('coupon-1')">REDEEM</button>
+        </div>
+      </div>
+
+      <div class="coupon" id="coupon-2">
+        <div class="stamp">USED</div>
+        <div class="coupon-header">
+          <span>COUPON TICKET</span>
+          <span>NO. 002</span>
+        </div>
+        <div class="coupon-body">
+          <h3>Homemade Meal Coupon</h3>
+          <p>I will cook whatever you want to eat.</p>
+          <span class="valid-badge">EXP: FOREVER</span>
+        </div>
+        <div class="coupon-footer">
+          <div class="barcode">|||| ||| || |</div>
+          <button class="redeem-btn" onclick="redeemCoupon('coupon-2')">REDEEM</button>
+        </div>
+      </div>
+
+      <div class="coupon" id="coupon-3">
+        <div class="stamp">USED</div>
+        <div class="coupon-header">
+          <span>COUPON TICKET</span>
+          <span>NO. 003</span>
+        </div>
+        <div class="coupon-body">
+          <h3>Movie Night Choice Pass</h3>
+          <p>You pick the movie, no objections!</p>
+          <span class="valid-badge">EXP: FOREVER</span>
+        </div>
+        <div class="coupon-footer">
+          <div class="barcode">|| | |||| ||</div>
+          <button class="redeem-btn" onclick="redeemCoupon('coupon-3')">REDEEM</button>
+        </div>
+      </div>
+
+      <div class="coupon" id="coupon-4">
+        <div class="stamp">USED</div>
+        <div class="coupon-header">
+          <span>COUPON TICKET</span>
+          <span>NO. 004</span>
+        </div>
+        <div class="coupon-body">
+          <h3>Wish Granting Wildcard</h3>
+          <p>One wish granted, no questions asked.</p>
+          <span class="valid-badge">EXP: FOREVER</span>
+        </div>
+        <div class="coupon-footer">
+          <div class="barcode">||||| | || |</div>
+          <button class="redeem-btn" onclick="redeemCoupon('coupon-4')">REDEEM</button>
+        </div>
+      </div>
+
+      <div class="coupon" id="coupon-5">
+        <div class="stamp">USED</div>
+        <div class="coupon-header">
+          <span>COUPON TICKET</span>
+          <span>NO. 005</span>
+        </div>
+        <div class="coupon-body">
+          <h3>Late Night Snack Pass</h3>
+          <p>Midnight snacks on me!</p>
+          <span class="valid-badge">EXP: FOREVER</span>
+        </div>
+        <div class="coupon-footer">
+          <div class="barcode">|| | | |||||</div>
+          <button class="redeem-btn" onclick="redeemCoupon('coupon-5')">REDEEM</button>
+        </div>
+      </div>
+
+      <div class="coupon" id="coupon-6">
+        <div class="stamp">USED</div>
+        <div class="coupon-header">
+          <span>COUPON TICKET</span>
+          <span>NO. 006</span>
+        </div>
+        <div class="coupon-body">
+          <h3>30-Min Massage Coupon</h3>
+          <p>30 minutes relaxing massage session.</p>
+          <span class="valid-badge">EXP: FOREVER</span>
+        </div>
+        <div class="coupon-footer">
+          <div class="barcode">|||| || || |</div>
+          <button class="redeem-btn" onclick="redeemCoupon('coupon-6')">REDEEM</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Cute Notepad Bucket List -->
+    <div class="notepad-section">
+      <h2 class="notepad-title">Our Together Bucket List 📝</h2>
+      <p style="text-align: center; color: #777; font-size: 1.1rem; margin-bottom: 15px;">Things we want to do together</p>
+      <ul class="bucket-list" id="bucket-list"></ul>
+      <div class="add-bucket">
+        <input type="text" id="bucket-input" placeholder="Add something you want to do together...">
+        <button onclick="addBucket()">+ Add</button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      sieun이가 jefferson의 생일을 축하하며, 사랑을 담아 ❤️
+      <br> With love, Sieun — celebrating Jefferson’s birthday ❤️
+      <br> September 20, 2026
+    </footer>
+
+  </div>
+
+  <!-- Open When Modal -->
+  <div class="modal" id="open-modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal()">&times;</span>
+      <h3 id="modal-title" style="color: var(--primary-color); margin-bottom: 10px;"></h3>
+      <img src="https://via.placeholder.com/400x200?text=Our+Special+Memory" id="modal-img" class="modal-img" alt="Memory Photo">
+      <p id="modal-text" style="color: #555; margin-bottom: 15px; font-size: 0.95rem;"></p>
+      
+      <!-- Audio Player for Voice Message -->
+      <audio id="voice-player" controls style="width: 100%;">
+        <source id="voice-source" src="" type="audio/mp3">
+      </audio>
+    </div>
+  </div>
+
+  <script>
+    // 1. Audio & Overlay Control
+    const bgm = document.getElementById('bgm');
+    function startWebsite() {
+      window.scrollTo(0, 0);
+      document.getElementById('start-overlay').style.opacity = '0';
+      setTimeout(() => { document.getElementById('start-overlay').style.display = 'none'; }, 500);
+      bgm.play().catch(e => console.log('Audio autoplay blocked:', e));
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    }
+
+    function toggleBGM() {
+      if (bgm.paused) { bgm.play(); } else { bgm.pause(); }
+    }
+
+    // 2. Cake Section Auto Hide Check
+    function checkCakeExpiration() {
+      const now = new Date();
+      const cupDate = new Date(now.getTime() - (16 * 60 * 60 * 1000));
+      const usYMD = cupDate.toISOString().split('T')[0];
+      
+      if (usYMD > '2026-09-20') {
+        const cakeSec = document.getElementById('cake-section');
+        if (cakeSec) cakeSec.style.display = 'none';
+      }
+    }
+    checkCakeExpiration();
+
+    // 3. Countdowns
+    const metDate = new Date('2026-08-27T00:00:00+09:00');
+    const nextDate = new Date('2027-01-07T00:00:00+09:00');
+
+    function calculateDays() {
+      const today = new Date();
+      const diffMet = Math.floor((today - metDate) / (1000 * 60 * 60 * 24));
+      const diffNext = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24));
+
+      document.getElementById('days-met').innerText = `D+${diffMet >= 0 ? diffMet : 0}`;
+      document.getElementById('days-next').innerText = `D-${diffNext >= 0 ? diffNext : 0}`;
+    }
+    calculateDays();
+
+    // 4. Candle Extinguish Function (Mic or Manual Click)
+    let isExtinguished = false;
+    let micStream = null;
+
+    function extinguishCandles() {
+      if (isExtinguished) return;
+      isExtinguished = true;
+
+      const flames = document.querySelectorAll('.img-flame');
+      flames.forEach(f => f.classList.add('off'));
+      
+      confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 } });
+      alert('🎉 Happy Birthday My Love! Your wish will come true!');
+
+      if (micStream) {
+        micStream.getTracks().forEach(track => track.stop());
+      }
+    }
+
+    // Microphone Candle Logic
+    let isMicActive = false;
+    function enableMic() {
+      if (isMicActive || isExtinguished) return;
+      
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          isMicActive = true;
+          micStream = stream;
+          alert('🎙️ Microphone activated! Now blow into your mic!');
+          
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const analyser = audioContext.createAnalyser();
+          const microphone = audioContext.createMediaStreamSource(stream);
+          microphone.connect(analyser);
+          analyser.fftSize = 256;
+
+          const bufferLength = analyser.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+
+          function checkVolume() {
+            if (isExtinguished) return;
+
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) { sum += dataArray[i]; }
+            let average = sum / bufferLength;
+
+            // Sensitivity threshold adjusted (35)
+            if (average > 35) { 
+              extinguishCandles();
+            } else {
+              requestAnimationFrame(checkVolume);
+            }
+          }
+          checkVolume();
+        })
+        .catch(err => {
+          alert('Microphone access unavailable. You can click the cake or button to blow out the candles!');
+        });
+    }
+
+    // Open When Modal Data
+    const openWhenData = {
+      1: { 
+        title: "When you miss me a lot 💌", 
+        text: "I miss you so much too, it hurts. But someday, we'll be able to be together all the time. Until that day comes, let's get through this together. I love you", 
+        img: "https://i.imgur.com/vdnrlrm.jpeg",
+        voice: "https://dirty-orange-xbmvj1xf.edgeone.dev/"
+      },
+      2: { 
+        title: "When you had a rough day ☕", 
+        text: "What made your day so rough? Can you see 누나 holding a shovel? 누나 will get rid of whatever's bothering you. just trust 누나. You just pray pretty and go to sleep, baby", 
+        img: "https://i.imgur.com/zxqzKOx.jpeg",
+        voice: "https://enchanting-plum-udfjbhln.edgeone.dev/"
+      },
+      3: { 
+        title: "When you can't sleep 🌙", 
+        text: "Just close your eyes tight like 누나, listen to 누나’s lullaby, and try counting all the way to 100 sheep~", 
+        img: "https://i.imgur.com/hUafLoZ.jpeg",
+        voice: "https://conventional-fuchsia-vqbbdobk.edgeone.dev/"
+      },
+      4: { 
+        title: "When we get into a fight 🌧️", 
+        text: "99.9% 누나's fault. I'm sorry, please forgive me. (When 누나 gets upset, just buy me some sweet fruit and I'll get ocer it right away. Just a little tip, in case you ever need it!)", 
+        img: "https://i.imgur.com/fajePk3.jpeg",
+        voice: "https://yeasty-coral-aekrmwpc.edgeone.dev/"
+      },
+      5: { 
+        title: "When you need a warm hug 🤗", 
+        text: "누나 will give you the best hug ever! Put your soul into the teddy bear 누나’s hugging right now! Can you feel my warm hug? When we finally meet, I’m gonna hug you so tight I’ll crush your bones!", 
+        img: "https://i.imgur.com/8B4QpWN.jpeg",
+        voice: "https://annual-beige-flrbhfmz.edgeone.dev/"
+      },
+      6: { 
+        title: "When you feel sick or unwell 🤒", 
+        text: "Baby, take your medicine, drink lots of water, and get some sleep. You need to rest when you’re sick so you can recover faster and get back to your normal routine. From now on, don’t get sick without 누나’s permission, okay?", 
+        img: "https://i.imgur.com/JwSKBuz.jpeg",
+        voice: "https://official-aqua-li90urgf.edgeone.dev/"
+      }
+    };
+
+    function openEnvelope(id) {
+      const data = openWhenData[id];
+      document.getElementById('modal-title').innerText = data.title;
+      document.getElementById('modal-text').innerText = data.text;
+      document.getElementById('modal-img').src = data.img;
+
+      const voicePlayer = document.getElementById('voice-player');
+      const voiceSource = document.getElementById('voice-source');
+      
+      voiceSource.src = data.voice;
+      voicePlayer.load();
+
+      document.getElementById('open-modal').style.display = 'flex';
+
+      if (bgm && !bgm.paused) {
+        bgm.volume = 0.5;
+      }
+      
+      voicePlayer.play().catch(e => console.log('Autoplay blocked:', e));
+
+      voicePlayer.onended = function() {
+        if (bgm) bgm.volume = 1.0;
+      };
+    }
+
+    function closeModal() {
+      const voicePlayer = document.getElementById('voice-player');
+      voicePlayer.pause();
+      document.getElementById('open-modal').style.display = 'none';
+
+      if (bgm) {
+        bgm.volume = 1.0;
+      }
+    }
+
+    // 5. Redeem Coupon & Persistence
+    function redeemCoupon(id) {
+      const coupon = document.getElementById(id);
+      if (coupon.classList.contains('used')) return;
+
+      const password = prompt('Enter the secret password to redeem! 🔒');
+      
+      if (password === '1023') {
+        coupon.classList.add('used');
+        localStorage.setItem(id, 'used');
+        confetti({ particleCount: 60, spread: 60 });
+        alert('Coupon redeemed successfully! 🎉');
+      } else if (password !== null) {
+        alert('Incorrect password! ❌');
+      }
+    }
+
+    // 6. Persistent Bucket List Logic
+    const defaultBuckets = [
+      { text: "Build a giant snowman together ☃️", checked: false },
+      { text: "Go for a drive along the beach 🚗🌊", checked: false },
+      { text: "Spend Christmas together 🎄✨", checked: false }
+    ];
+
+    function loadBucketList() {
+      const saved = localStorage.getItem('together_bucket_list');
+      let items = saved ? JSON.parse(saved) : defaultBuckets;
+      renderBucketList(items);
+    }
+
+    function saveBucketList(items) {
+      localStorage.setItem('together_bucket_list', JSON.stringify(items));
+    }
+
+    function getBucketListFromDOM() {
+      const items = [];
+      document.querySelectorAll('#bucket-list .bucket-item').forEach(li => {
+        const checkbox = li.querySelector('input[type="checkbox"]');
+        const textSpan = li.querySelector('.bucket-text');
+        items.push({
+          text: textSpan.innerText,
+          checked: checkbox.checked
+        });
+      });
+      return items;
+    }
+
+    function renderBucketList(items) {
+      const ul = document.getElementById('bucket-list');
+      ul.innerHTML = '';
+      items.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.className = 'bucket-item';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = item.checked;
+        
+        const textSpan = document.createElement('span');
+        textSpan.className = 'bucket-text' + (item.checked ? ' completed' : '');
+        textSpan.innerText = item.text;
+
+        checkbox.onchange = function() {
+          if (this.checked) {
+            textSpan.classList.add('completed');
+          } else {
+            textSpan.classList.remove('completed');
+          }
+          saveBucketList(getBucketListFromDOM());
+        };
+
+        li.appendChild(checkbox);
+        li.appendChild(textSpan);
+        ul.appendChild(li);
+      });
+    }
+
+    function addBucket() {
+      const input = document.getElementById('bucket-input');
+      const val = input.value.trim();
+      if (val !== '') {
+        const items = getBucketListFromDOM();
+        items.push({ text: val, checked: false });
+        renderBucketList(items);
+        saveBucketList(items);
+        input.value = '';
+      }
+    }
+
+    // Initialize state on window load
+    window.onload = function() {
+      // Load saved coupons
+      for (let i = 1; i <= 6; i++) {
+        if (localStorage.getItem(`coupon-${i}`) === 'used') {
+          document.getElementById(`coupon-${i}`).classList.add('used');
+        }
+      }
+      // Load bucket list
+      loadBucketList();
+    };
+  </script>
+</body>
+</html>
